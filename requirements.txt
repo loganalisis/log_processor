@@ -1,0 +1,4 @@
+Django==4.2
+djangorestframework
+azure-storage-blob==12.24.0
+kafka-python==2.0.2
