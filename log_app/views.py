@@ -32,21 +32,21 @@ def upload_log(request):
     # delete_topic("logs_item_updated.uploaded")
     
 
-    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        for chunk in file_obj.chunks():
-            temp_file.write(chunk)
-        temp_file_path = temp_file.name
+    # with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+    #     for chunk in file_obj.chunks():
+    #         temp_file.write(chunk)
+    #     temp_file_path = temp_file.name
 
-        for line_num, line in enumerate(stream_lines(temp_file_path)):
-            if not line.strip():
-                continue
-            msg = {
-                    "file_name": file_obj.name,
-                    "line_number": line_num + 1,
-                    "content": line.strip(),
-                    "blob_url": blob_url,
-                }
-            publish_to_kafka("logs_item_updated.uploaded", msg, unique_name)
+    #     for line_num, line in enumerate(stream_lines(temp_file_path)):
+    #         if not line.strip():
+    #             continue
+    #         msg = {
+    #                 "file_name": file_obj.name,
+    #                 "line_number": line_num + 1,
+    #                 "content": line.strip(),
+    #                 "blob_url": blob_url,
+    #             }
+    #         publish_to_kafka("logs_item_updated.uploaded", msg, unique_name)
 
     # with open(temp_file_path, 'r') as f:
     #     for line_num, line in enumerate(f):
@@ -61,7 +61,7 @@ def upload_log(request):
                 # print(f"Publishing to Kafka: {msg}")
 
     # Send metadata to Kafka
-    # publish_to_kafka("logs.uploaded", {"file": unique_name, "url": blob_url})
+    publish_to_kafka("logs_item_updated.uploaded", {"file": unique_name, "url": blob_url}, unique_name)
     # publish_to_kafka("logs.uploaded", "hello")
 
     return Response({

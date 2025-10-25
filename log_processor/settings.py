@@ -13,6 +13,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'corsheaders',
     "log_app",
     "rest_framework",
 ]
@@ -25,6 +26,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware"
 ]
 
 TEMPLATES = [
@@ -44,6 +46,7 @@ TEMPLATES = [
 ]
 
 ROOT_URLCONF = "log_processor.urls"
+CORS_ORIGIN_ALLOW_ALL = True
 WSGI_APPLICATION = "log_processor.wsgi.application"
 
 DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3","NAME": BASE_DIR / "db.sqlite3"}}
