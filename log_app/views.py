@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
-from .kafka_client import publish_to_kafka
+from .kafka_client import publish_to_kafka, delete_topic
 from azure.storage.blob import BlobClient
 import os, uuid
 import tempfile
@@ -26,8 +26,10 @@ def upload_log(request):
         blob_name=unique_name
     )
 
-    # blob_client.upload_blob(file_obj, overwrite=True)
+    blob_client.upload_blob(file_obj, overwrite=True)
     blob_url = f"https://{account_name}.blob.core.windows.net/{container_name}/{unique_name}"
+
+    # delete_topic("logs_item_updated.uploaded")
     
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
@@ -35,16 +37,27 @@ def upload_log(request):
             temp_file.write(chunk)
         temp_file_path = temp_file.name
 
-    with open(temp_file_path, 'r') as f:
-        for line_num, line in enumerate(f):
-            if line.strip():
-                msg = {
+        for line_num, line in enumerate(stream_lines(temp_file_path)):
+            if not line.strip():
+                continue
+            msg = {
                     "file_name": file_obj.name,
                     "line_number": line_num + 1,
                     "content": line.strip(),
                     "blob_url": blob_url,
                 }
-                publish_to_kafka("logs_item2.uploaded", msg, unique_name)
+            publish_to_kafka("logs_item_updated.uploaded", msg, unique_name)
+
+    # with open(temp_file_path, 'r') as f:
+    #     for line_num, line in enumerate(f):
+    #         if line.strip():
+    #             msg = {
+    #                 "file_name": file_obj.name,
+    #                 "line_number": line_num + 1,
+    #                 "content": line.strip(),
+    #                 "blob_url": blob_url,
+    #             }
+    #             publish_to_kafka("logs_item_updated.uploaded", msg, unique_name)
                 # print(f"Publishing to Kafka: {msg}")
 
     # Send metadata to Kafka
@@ -56,3 +69,17 @@ def upload_log(request):
         "unique_name": unique_name,
         "url": blob_url
     })
+
+def stream_lines(file_path, chunk_size=1024 * 1024):  # 1MB chunks
+    buf = ''
+    with open(file_path, 'r') as f:
+        while True:
+            chunk = f.read(chunk_size)
+            if not chunk:
+                if buf:
+                    yield buf
+                break
+            lines = (buf + chunk).split('\n')
+            buf = lines.pop()  # incomplete line
+            for line in lines:
+                yield line
