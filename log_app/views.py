@@ -61,7 +61,7 @@ def upload_log(request):
                 # print(f"Publishing to Kafka: {msg}")
 
     # Send metadata to Kafka
-    publish_to_kafka("logs_item_updated.uploaded", {"file": unique_name, "url": blob_url}, unique_name)
+    publish_to_kafka("log_details", {"file": unique_name, "url": blob_url}, unique_name)
     # publish_to_kafka("logs.uploaded", "hello")
 
     return Response({
